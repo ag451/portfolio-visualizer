@@ -38,14 +38,16 @@ const FileUpload = ({ onFileSelect, onDataExtracted }: FileUploadProps) => {
         // Convert file to base64 first
         const base64Data = await convertFileToBase64(file);
         
-        // Only call onFileSelect with the original file after successful conversion
-        onFileSelect(file);
+        // Call onFileSelect with a new File object created from the base64 data
+        const blob = await fetch(base64Data).then(res => res.blob());
+        const clonedFile = new File([blob], file.name, { type: file.type });
+        onFileSelect(clonedFile);
         
         toast.loading('Processing your portfolio screenshot...');
         
         const stockData = useAI 
           ? await processImageWithAI(base64Data)
-          : await processStockImage(file);
+          : await processStockImage(clonedFile);
           
         onDataExtracted(stockData);
         toast.success('Portfolio data extracted successfully!');
