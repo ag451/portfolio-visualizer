@@ -16,7 +16,7 @@ interface PortfolioChartsProps {
 }
 
 const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
-  const [currency, setCurrency] = useState<'USD' | 'GBP'>('GBP');
+  const [currency, setCurrency] = useState<'USD' | 'GBP'>('USD');
   const [exchangeRate, setExchangeRate] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(false);
   
@@ -80,6 +80,15 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
           totalValue={totalValue}
           COLORS={COLORS}
         />
+        
+        {sectorData && (
+          <SectorDistributionChart 
+            data={sectorData}
+            formatCurrency={formatCurrency}
+            totalValue={totalValue}
+            COLORS={COLORS}
+          />
+        )}
 
         <StockValuesChart 
           data={formattedData}
