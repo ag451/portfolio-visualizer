@@ -2,7 +2,7 @@ import Replicate from 'replicate';
 import type { StockData } from './imageProcessing';
 
 const replicate = new Replicate({
-  auth: process.env.REPLICATE_API_TOKEN || '',
+  auth: 'r8_7MhpRKemCwseyKHJ1e9xcS7c7k4cs3u4TLqt0',
 });
 
 export const processImageWithAI = async (imageFile: File): Promise<StockData[]> => {
@@ -17,6 +17,8 @@ export const processImageWithAI = async (imageFile: File): Promise<StockData[]> 
       reader.onerror = reject;
     });
 
+    console.log('Image converted to base64, calling Replicate API');
+
     // Use BLIP model to extract text from image
     const output = await replicate.run(
       "salesforce/blip:2e1dddc8621f72155f24cf2e0adbde548458d3cab9f00c0139eea840d0ac4746",
@@ -29,12 +31,13 @@ export const processImageWithAI = async (imageFile: File): Promise<StockData[]> 
       }
     );
 
-    console.log('AI Vision output:', output);
+    console.log('Replicate API response:', output);
 
+    // Ensure output is treated as string before parsing
+    const outputText = String(output);
+    
     // Parse the AI output into stock data
-    // This is a basic implementation - you'll need to adjust the parsing logic
-    // based on the actual format of the AI output
-    const stockData = parseAIOutput(output as string);
+    const stockData = parseAIOutput(outputText);
     
     return stockData;
   } catch (error) {
@@ -44,8 +47,8 @@ export const processImageWithAI = async (imageFile: File): Promise<StockData[]> 
 };
 
 const parseAIOutput = (output: string): StockData[] => {
-  // This is a placeholder implementation
-  // You'll need to adjust this based on the actual format of the AI output
+  console.log('Parsing AI output:', output);
+  
   const stocks: StockData[] = [];
   
   // Split the output into lines and try to extract stock information
@@ -61,7 +64,7 @@ const parseAIOutput = (output: string): StockData[] => {
       
       stocks.push({
         symbol: `${symbol}.NASDAQ`, // Default to NASDAQ, adjust as needed
-        name: symbol,
+        name: `${symbol}.NASDAQ`,
         price: numericPrice,
         shares: numericShares,
         value: value,
@@ -70,5 +73,6 @@ const parseAIOutput = (output: string): StockData[] => {
     }
   }
   
+  console.log('Parsed stock data:', stocks);
   return stocks;
 };
