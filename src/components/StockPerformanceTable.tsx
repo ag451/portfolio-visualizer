@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface StockPerformanceTableProps {
   stocks: Array<{
@@ -15,16 +16,26 @@ interface FinnhubResponse {
   c: number; // Current price
 }
 
-const FINNHUB_API_KEY = 'ctsaonhr01qh9oeso5e0ctsaonhr01qh9oeso5eg';
-
 const StockPerformanceTable = ({ stocks }: StockPerformanceTableProps) => {
   const fetchStockPrice = async (symbol: string) => {
     console.log('Fetching price for symbol:', symbol);
     
     try {
+      const { data: secretData, error: secretError } = await supabase
+        .from('secrets')
+        .select('value')
+        .eq('name', 'FINNHUB_API_KEY')
+        .single();
+
+      if (secretError) {
+        console.error('Error fetching API key:', secretError);
+        throw new Error('Failed to fetch API key');
+      }
+
+      const apiKey = secretData.value;
       const cleanSymbol = symbol.split('.')[0]; // Remove exchange suffix
       const response = await fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${FINNHUB_API_KEY}`
+        `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${apiKey}`
       );
       
       if (!response.ok) {
