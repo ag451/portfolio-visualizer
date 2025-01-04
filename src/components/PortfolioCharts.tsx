@@ -10,12 +10,13 @@ interface ChartData {
 
 interface PortfolioChartsProps {
   data: ChartData[];
+  sectorData: ChartData[];
 }
 
 const COLORS = ['#60A5FA', '#10B981', '#818CF8', '#F472B6', '#F59E0B', '#6366F1', '#EC4899'];
 const USD_TO_GBP = 0.79;
 
-const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
+const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
   const [currency, setCurrency] = useState<'GBP' | 'USD'>('GBP');
   
   const convertValue = (value: number) => {
@@ -27,6 +28,12 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   const formattedData = data.map(item => ({
     ...item,
     name: item.name.split('.')[0],
+    value: convertValue(item.value),
+    formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
+  }));
+
+  const formattedSectorData = sectorData.map(item => ({
+    ...item,
     value: convertValue(item.value),
     formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
   }));
@@ -104,6 +111,29 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
         </div>
 
         <div className="bg-background border p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 text-foreground">Sector Distribution</h3>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={formattedSectorData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, percent }) => `${name.split(' ')[0]} (${(percent * 100).toFixed(1)}%)`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {formattedSectorData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip content={<CustomTooltip />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="bg-background border p-6 rounded-lg shadow-lg lg:col-span-2">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Stock Values</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={formattedData}>

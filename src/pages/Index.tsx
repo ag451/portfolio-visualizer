@@ -8,8 +8,72 @@ import type { StockData } from '@/utils/imageProcessing';
 const Index = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [portfolioData, setPortfolioData] = useState<StockData[]>([]);
-  const [showCharts, setShowCharts] = useState(false);
+  const [portfolioData, setPortfolioData] = useState<StockData[]>([
+    {
+      symbol: "LULU.NASDAQ",
+      name: "Lululemon Athletica Inc.",
+      price: 378.18,
+      shares: 50,
+      value: 15220.96,
+      returns: 5221.49,
+      sector: "CONSUMER NON DURABLES"
+    },
+    {
+      symbol: "ONON.NYSE",
+      name: "On Holding AG",
+      price: 55.37,
+      shares: 288,
+      value: 12836.32,
+      returns: 759.47,
+      sector: "CONSUMER NON DURABLES"
+    },
+    {
+      symbol: "ASML.EURONEXT",
+      name: "ASML Holding NV",
+      price: 688.00,
+      shares: 188,
+      value: 107359.79,
+      returns: 2705.43,
+      sector: "ELECTRONIC TECHNOLOGY"
+    },
+    {
+      symbol: "TSM.NYSE",
+      name: "Taiwan Semiconductor Manufacturing",
+      price: 201.58,
+      shares: 134,
+      value: 21743.31,
+      returns: 12012.84,
+      sector: "ELECTRONIC TECHNOLOGY"
+    },
+    {
+      symbol: "AMZN.NASDAQ",
+      name: "Amazon.com Inc.",
+      price: 224.19,
+      shares: 617,
+      value: 111346.08,
+      returns: 21134.02,
+      sector: "RETAIL TRADE"
+    },
+    {
+      symbol: "MELI.NASDAQ",
+      name: "MercadoLibre Inc",
+      price: 1834.17,
+      shares: 71,
+      value: 104826.59,
+      returns: -1793.67,
+      sector: "RETAIL TRADE"
+    },
+    {
+      symbol: "NU.NYSE",
+      name: "Nu Holdings Ltd",
+      price: 10.63,
+      shares: 2149,
+      value: 18388.37,
+      returns: -1754.77,
+      sector: "TECHNOLOGY SERVICES"
+    }
+  ]);
+  const [showCharts, setShowCharts] = useState(true);
 
   const handleFileSelect = (selectedFile: File) => {
     setFile(selectedFile);
@@ -24,12 +88,27 @@ const Index = () => {
   };
 
   useEffect(() => {
-    // Add dark mode class to html element
     document.documentElement.classList.add('dark');
     return () => {
       document.documentElement.classList.remove('dark');
     };
   }, []);
+
+  // Calculate sector totals
+  const sectorData = React.useMemo(() => {
+    const sectorTotals = portfolioData.reduce((acc, stock) => {
+      if (!acc[stock.sector]) {
+        acc[stock.sector] = 0;
+      }
+      acc[stock.sector] += stock.value;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.entries(sectorTotals).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  }, [portfolioData]);
 
   const chartData = portfolioData.map(stock => ({
     name: stock.symbol,
@@ -72,7 +151,7 @@ const Index = () => {
                       .toLocaleString()}
                   </p>
                 </div>
-                <PortfolioCharts data={chartData} />
+                <PortfolioCharts data={chartData} sectorData={sectorData} />
                 <StockPerformanceTable stocks={portfolioData} />
               </div>
             )}

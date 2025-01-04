@@ -7,6 +7,7 @@ export interface StockData {
   shares: number;
   value: number;
   returns?: number;
+  sector?: string;
 }
 
 export const processStockImage = async (imageFile: File): Promise<StockData[]> => {
