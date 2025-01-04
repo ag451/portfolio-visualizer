@@ -57,9 +57,10 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   // Transform the data to use ticker symbols for display
   const formattedData = data.map(item => ({
     ...item,
-    name: item.symbol || item.name, // Use symbol if available, fallback to name
+    name: item.symbol || item.name, // Prioritize using the symbol, fallback to name
     value: convertValue(item.value),
-    formattedValue: formatCurrency(item.value)
+    formattedValue: formatCurrency(item.value),
+    displayName: item.symbol // Ensure we use the symbol for display
   }));
 
   return (
