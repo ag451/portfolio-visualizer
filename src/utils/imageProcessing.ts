@@ -9,13 +9,14 @@ export interface StockData {
   gainLoss: number;
 }
 
-const extractTickerFromName = (fullName: string): string => {
-  // Split by dot to handle format like "AMZN.NASDAQ"
-  const parts = fullName.split('.');
-  if (parts.length >= 2) {
-    return parts[0]; // Return just the ticker part
-  }
-  return fullName; // Return original if no dot found
+// Map company names to their ticker symbols
+const STOCK_SYMBOL_MAP: { [key: string]: string } = {
+  'Amazon.com Inc.NASDAQ': 'AMZN',
+  'ASML Holding NV.EURONEXT': 'ASML',
+  'Lululemon Athletica inc.NASDAQ': 'LULU',
+  'MercadoLibre Inc.NASDAQ': 'MELI',
+  'On Holding AG - Ordinary Shares Class A.NYSE': 'ONON',
+  'Taiwan Semiconductor Manufacturing - ADR.NYSE': 'TSM'
 };
 
 export const processStockImage = async (imageFile: File): Promise<StockData[]> => {
@@ -56,10 +57,14 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
       const cleanValue = value.replace(/,/g, '');
 
       const fullName = `${companyName.trim()}.${exchange}`;
+      
+      // Get the ticker symbol from the map or use the extracted symbol
+      const tickerSymbol = STOCK_SYMBOL_MAP[fullName] || symbol;
+      console.log('Extracted ticker symbol:', tickerSymbol, 'for company:', fullName);
 
       const stockData: StockData = {
-        symbol: symbol, // Use the extracted symbol directly
         name: fullName,
+        symbol: tickerSymbol,
         price: parseFloat(cleanPrice),
         shares: parseInt(shares, 10),
         value: parseFloat(cleanValue),
