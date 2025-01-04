@@ -9,14 +9,13 @@ export interface StockData {
   gainLoss: number;
 }
 
-// Map company names to their ticker symbols
-const STOCK_SYMBOL_MAP: { [key: string]: string } = {
-  'Amazon.com Inc.NASDAQ': 'AMZN',
-  'ASML Holding NV.EURONEXT': 'ASML',
-  'Lululemon Athletica inc.NASDAQ': 'LULU',
-  'MercadoLibre Inc.NASDAQ': 'MELI',
-  'On Holding AG - Ordinary Shares Class A.NYSE': 'ONON',
-  'Taiwan Semiconductor Manufacturing - ADR.NYSE': 'TSM'
+const extractTickerSymbol = (text: string): string => {
+  // Extract everything before the dot (.)
+  const match = text.match(/^([^.]+)/);
+  if (match) {
+    return match[1];
+  }
+  return text;
 };
 
 export const processStockImage = async (imageFile: File): Promise<StockData[]> => {
@@ -37,7 +36,7 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
       console.log('Processing line:', line);
 
       // More flexible regex that handles different formats
-      const regex = /([A-Z]+)\.([A-Z]+)\s+(.*?)\s+(?:US\$|€)?(\d+(?:,\d+)?(?:\.\d+)?)\s+(\d+)\s+(\d+(?:,\d+)?(?:\.\d+)?)/;
+      const regex = /([A-Z]+\.[A-Z]+)\s+(.*?)\s+(?:US\$|€)?(\d+(?:,\d+)?(?:\.\d+)?)\s+(\d+)\s+(\d+(?:,\d+)?(?:\.\d+)?)/;
       const match = line.match(regex);
 
       if (!match) {
@@ -45,26 +44,24 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
         return null;
       }
 
-      const [_, symbol, exchange, companyName, price, shares, value] = match;
+      const [_, symbolWithExchange, companyName, price, shares, value] = match;
       
-      // Extract gain/loss from the remaining part of the line
-      const remainingLine = line.slice(line.indexOf(value) + value.length);
-      const gainLossMatch = remainingLine.match(/-?\d+(?:,\d+)?(?:\.\d+)?/g);
-      const gainLoss = gainLossMatch ? parseFloat(gainLossMatch[gainLossMatch.length - 1].replace(/,/g, '')) : 0;
+      // Extract the ticker symbol (everything before the dot)
+      const symbol = extractTickerSymbol(symbolWithExchange);
+      console.log('Extracted ticker symbol:', symbol, 'from:', symbolWithExchange);
 
       // Clean up numeric values
       const cleanPrice = price.replace(/,/g, '');
       const cleanValue = value.replace(/,/g, '');
 
-      const fullName = `${companyName.trim()}.${exchange}`;
-      
-      // Get the ticker symbol from the map or use the extracted symbol
-      const tickerSymbol = STOCK_SYMBOL_MAP[fullName] || symbol;
-      console.log('Extracted ticker symbol:', tickerSymbol, 'for company:', fullName);
+      // Extract gain/loss from the remaining part of the line
+      const remainingLine = line.slice(line.indexOf(value) + value.length);
+      const gainLossMatch = remainingLine.match(/-?\d+(?:,\d+)?(?:\.\d+)?/g);
+      const gainLoss = gainLossMatch ? parseFloat(gainLossMatch[gainLossMatch.length - 1].replace(/,/g, '')) : 0;
 
       const stockData: StockData = {
-        name: fullName,
-        symbol: tickerSymbol,
+        name: companyName.trim(),
+        symbol: symbol,
         price: parseFloat(cleanPrice),
         shares: parseInt(shares, 10),
         value: parseFloat(cleanValue),
