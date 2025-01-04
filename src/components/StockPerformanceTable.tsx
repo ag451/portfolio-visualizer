@@ -2,6 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface StockPerformanceTableProps {
   stocks: Array<{
@@ -21,22 +22,34 @@ const StockPerformanceTable = ({ stocks }: StockPerformanceTableProps) => {
       .from('secrets')
       .select('value')
       .eq('name', 'FINNHUB_API_KEY')
-      .single();
+      .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
+      console.error('Error fetching Finnhub API key:', error);
+      throw new Error('Failed to fetch Finnhub API key');
+    }
+
+    if (!data) {
+      console.error('No Finnhub API key found');
+      toast.error('Finnhub API key not found. Please add it in the settings.');
       throw new Error('Finnhub API key not found');
     }
 
     const cleanSymbol = symbol.split('.')[0]; // Remove exchange suffix
-    const response = await fetch(
-      `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${data.value}`
-    );
-    
-    if (!response.ok) {
+    try {
+      const response = await fetch(
+        `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${data.value}`
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch stock price: ${response.statusText}`);
+      }
+      
+      return response.json();
+    } catch (error) {
+      console.error('Error fetching stock price:', error);
       throw new Error('Failed to fetch stock price');
     }
-    
-    return response.json();
   };
 
   const queries = stocks.map(stock => ({
@@ -76,7 +89,11 @@ const StockPerformanceTable = ({ stocks }: StockPerformanceTableProps) => {
                 <TableCell>${stock.price.toFixed(2)}</TableCell>
                 <TableCell>
                   {isLoading && 'Loading...'}
-                  {error && 'Error fetching price'}
+                  {error && (
+                    <span className="text-red-500">
+                      Error fetching price
+                    </span>
+                  )}
                   {currentPrice && `$${currentPrice.toFixed(2)}`}
                 </TableCell>
                 <TableCell>
