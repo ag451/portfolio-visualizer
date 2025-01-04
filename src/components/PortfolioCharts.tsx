@@ -15,9 +15,10 @@ const COLORS = ['#60A5FA', '#10B981', '#818CF8', '#F472B6', '#F59E0B', '#6366F1'
 const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   const totalValue = data.reduce((sum, item) => sum + item.value, 0);
 
-  // Format data for better display
+  // Format data and extract ticker symbol (everything before the dot)
   const formattedData = data.map(item => ({
     ...item,
+    name: item.name.split('.')[0], // Extract ticker symbol
     formattedValue: `$${item.value.toLocaleString()}`
   }));
 
