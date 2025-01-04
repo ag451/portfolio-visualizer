@@ -5,6 +5,8 @@ import { PieDistributionChart } from './charts/PieDistributionChart';
 import { StockValuesChart } from './charts/StockValuesChart';
 import { GainLossChart } from './charts/GainLossChart';
 import { CurrencyDistributionChart } from './charts/CurrencyDistributionChart';
+import { SectorDistributionChart } from './charts/SectorDistributionChart';
+import { useStockSectors } from '@/hooks/useStockSectors';
 import type { ChartData } from './types/ChartTypes';
 
 const COLORS = ['#60A5FA', '#10B981', '#818CF8', '#F472B6', '#F59E0B', '#6366F1', '#EC4899'];
@@ -17,6 +19,8 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   const [currency, setCurrency] = useState<'USD' | 'GBP'>('USD');
   const [exchangeRate, setExchangeRate] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(false);
+  
+  const { data: sectorData, isLoading: isSectorLoading } = useStockSectors(data);
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
@@ -93,6 +97,15 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
           data={formattedData}
           currency={currency}
         />
+
+        {sectorData && (
+          <SectorDistributionChart 
+            data={sectorData}
+            formatCurrency={formatCurrency}
+            totalValue={totalValue}
+            COLORS={COLORS}
+          />
+        )}
       </div>
     </div>
   );
