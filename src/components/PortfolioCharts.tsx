@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { DistributionChart } from './charts/DistributionChart';
+import { ReturnsTooltip } from './tooltips/ReturnsTooltip';
 
 interface ChartData {
   name: string;
@@ -18,8 +20,8 @@ const COLORS = ['#60A5FA', '#10B981', '#818CF8', '#F472B6', '#F59E0B', '#6366F1'
 
 const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
   const [currency, setCurrency] = useState<'GBP' | 'USD'>('GBP');
-  const [exchangeRate, setExchangeRate] = useState<number>(0.79); // Default fallback rate
-  
+  const [exchangeRate, setExchangeRate] = useState<number>(0.79);
+
   useEffect(() => {
     const fetchExchangeRate = async () => {
       try {
@@ -34,7 +36,7 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
     };
 
     fetchExchangeRate();
-  }, []); // Fetch once when component mounts
+  }, []);
 
   const convertValue = (value: number) => {
     return currency === 'GBP' ? value * exchangeRate : value;
@@ -47,7 +49,7 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
     name: item.name.split('.')[0],
     value: convertValue(item.value),
     formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
-  })).sort((a, b) => b.value - a.value); // Sort by value descending
+  })).sort((a, b) => b.value - a.value);
 
   const formattedSectorData = sectorData.map(item => ({
     ...item,
@@ -61,7 +63,7 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
   })).sort((a, b) => {
     const returnsA = a.returns || 0;
     const returnsB = b.returns || 0;
-    return returnsB - returnsA; // Sort by returns descending
+    return returnsB - returnsA;
   });
 
   const toggleCurrency = () => {
@@ -69,39 +71,6 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
   };
 
   const currencySymbol = currency === 'GBP' ? '£' : '$';
-
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background p-3 border rounded shadow-lg">
-          <p className="font-semibold">{payload[0].payload.name}</p>
-          <p className="text-foreground">{currencySymbol}{payload[0].value.toLocaleString()}</p>
-          <p className="text-muted-foreground">
-            {((payload[0].value / totalValue) * 100).toFixed(1)}% of portfolio
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const ReturnsTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-background p-3 border rounded shadow-lg">
-          <p className="font-semibold text-foreground">{payload[0].payload.name}</p>
-          <p className={`${payload[0].value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            {currencySymbol}{Math.abs(payload[0].value).toLocaleString()}
-            {payload[0].value >= 0 ? ' gain' : ' loss'}
-          </p>
-          <p className="text-muted-foreground">
-            Original value: {currencySymbol}{convertValue(payload[0].payload.value).toLocaleString()}
-          </p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="space-y-8">
@@ -119,51 +88,21 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-background border p-6 rounded-lg shadow-lg">
-          <h3 className="text-lg font-semibold mb-4 text-foreground">Portfolio Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={formattedData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name} (${(percent * 100).toFixed(1)}%)`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {formattedData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <DistributionChart
+          data={formattedData}
+          title="Portfolio Distribution"
+          currencySymbol={currencySymbol}
+          totalValue={totalValue}
+          colors={COLORS}
+        />
 
-        <div className="bg-background border p-6 rounded-lg shadow-lg">
-          <h3 className="text-lg font-semibold mb-4 text-foreground">Sector Distribution</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={formattedSectorData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) => `${name.split(' ')[0]} (${(percent * 100).toFixed(1)}%)`}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {formattedSectorData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <DistributionChart
+          data={formattedSectorData}
+          title="Sector Distribution"
+          currencySymbol={currencySymbol}
+          totalValue={totalValue}
+          colors={COLORS}
+        />
 
         <div className="bg-background border p-6 rounded-lg shadow-lg lg:col-span-2">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Stock Values</h3>
@@ -191,7 +130,13 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
                 tickFormatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}k`}
                 stroke="currentColor"
               />
-              <Tooltip content={<ReturnsTooltip />} />
+              <Tooltip content={(props) => (
+                <ReturnsTooltip 
+                  {...props} 
+                  currencySymbol={currencySymbol} 
+                  convertValue={convertValue}
+                />
+              )} />
               <Bar 
                 dataKey="returns" 
                 fill="#10B981"
