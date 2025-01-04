@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ChartData } from '@/components/types/ChartTypes';
 
-const FINNHUB_API_KEY = 'YOUR_FINNHUB_API_KEY'; // You'll need to replace this with your actual API key
+const FINNHUB_API_KEY = 'ctsaonhr01qh9oeso5e0ctsaonhr01qh9oeso5eg';
 
 async function fetchStockSector(symbol: string): Promise<string> {
   try {

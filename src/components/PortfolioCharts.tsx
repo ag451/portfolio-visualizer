@@ -81,6 +81,15 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
           COLORS={COLORS}
         />
         
+        {sectorData && (
+          <SectorDistributionChart 
+            data={sectorData}
+            formatCurrency={formatCurrency}
+            totalValue={totalValue}
+            COLORS={COLORS}
+          />
+        )}
+
         <StockValuesChart 
           data={formattedData}
           formatCurrency={formatCurrency}
@@ -97,15 +106,6 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
           data={formattedData}
           currency={currency}
         />
-
-        {sectorData && (
-          <SectorDistributionChart 
-            data={sectorData}
-            formatCurrency={formatCurrency}
-            totalValue={totalValue}
-            COLORS={COLORS}
-          />
-        )}
       </div>
     </div>
   );
