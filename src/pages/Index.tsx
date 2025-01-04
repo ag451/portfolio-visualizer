@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import FileUpload from '@/components/FileUpload';
 import PortfolioCharts from '@/components/PortfolioCharts';
+import StockPerformanceTable from '@/components/StockPerformanceTable';
 import { toast } from 'sonner';
 import type { StockData } from '@/utils/imageProcessing';
 
@@ -22,10 +23,18 @@ const Index = () => {
     setShowCharts(true);
   };
 
+  useEffect(() => {
+    // Add dark mode class to html element
+    document.documentElement.classList.add('dark');
+    return () => {
+      document.documentElement.classList.remove('dark');
+    };
+  }, []);
+
   const chartData = portfolioData.map(stock => ({
     name: stock.symbol,
     value: stock.value,
-    returns: stock.returns
+    returns: stock.returns || 0
   }));
 
   return (
@@ -54,7 +63,7 @@ const Index = () => {
             )}
 
             {showCharts && chartData.length > 0 && (
-              <div className="animate-fadeIn">
+              <div className="animate-fadeIn space-y-8">
                 <div className="mb-6 p-4 bg-background border rounded-lg shadow-sm">
                   <h2 className="text-2xl font-semibold mb-2 text-foreground">Portfolio Summary</h2>
                   <p className="text-muted-foreground">
@@ -64,6 +73,7 @@ const Index = () => {
                   </p>
                 </div>
                 <PortfolioCharts data={chartData} />
+                <StockPerformanceTable stocks={portfolioData} />
               </div>
             )}
           </div>

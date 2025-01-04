@@ -6,6 +6,7 @@ export interface StockData {
   price: number;
   shares: number;
   value: number;
+  returns?: number;
 }
 
 export const processStockImage = async (imageFile: File): Promise<StockData[]> => {
