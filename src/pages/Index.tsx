@@ -22,9 +22,9 @@ const Index = () => {
     setShowCharts(true);
   };
 
-  // Transform stock data for charts
+  // Transform stock data for charts using company names
   const chartData = portfolioData.map(stock => ({
-    name: stock.symbol,
+    name: stock.name,
     value: stock.value
   }));
 

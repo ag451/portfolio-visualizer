@@ -22,20 +22,20 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
     const lines = result.data.text.split('\n').filter(line => line.trim());
     
     return lines.map(line => {
-      // Extract data using regex patterns matching the screenshot format
-      const match = line.match(/([A-Z]+)\.([A-Z]+)\s+.*?\s+US?\$?€?(\d+\.?\d*)\s+(\d+)\s+(\d+,?\d*\.?\d*)/);
+      // Updated regex to capture company name
+      const match = line.match(/([A-Z]+)\.([A-Z]+)\s+(.*?)\s+US?\$?€?(\d+\.?\d*)\s+(\d+)\s+(\d+,?\d*\.?\d*)/);
       
       if (!match) {
         console.log('No match found for line:', line);
         return null;
       }
 
-      const [_, symbol1, symbol2, price, shares, value] = match;
+      const [_, symbol1, symbol2, companyName, price, shares, value] = match;
       const fullSymbol = `${symbol1}.${symbol2}`;
 
       return {
         symbol: fullSymbol,
-        name: fullSymbol, // We could fetch the full name from an API if needed
+        name: companyName.trim(),
         price: parseFloat(price.replace(',', '')),
         shares: parseInt(shares, 10),
         value: parseFloat(value.replace(',', ''))
