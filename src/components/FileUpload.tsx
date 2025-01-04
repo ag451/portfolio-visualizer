@@ -1,17 +1,32 @@
 import React, { useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
+import { toast } from 'sonner';
+import { processStockImage } from '@/utils/imageProcessing';
+import type { StockData } from '@/utils/imageProcessing';
 
 interface FileUploadProps {
   onFileSelect: (file: File) => void;
+  onDataExtracted: (data: StockData[]) => void;
 }
 
-const FileUpload = ({ onFileSelect }: FileUploadProps) => {
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+const FileUpload = ({ onFileSelect, onDataExtracted }: FileUploadProps) => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
-      onFileSelect(acceptedFiles[0]);
+      const file = acceptedFiles[0];
+      onFileSelect(file);
+      
+      try {
+        toast.loading('Processing your portfolio screenshot...');
+        const stockData = await processStockImage(file);
+        onDataExtracted(stockData);
+        toast.success('Portfolio data extracted successfully!');
+      } catch (error) {
+        console.error('Error processing image:', error);
+        toast.error('Failed to process image. Please try again.');
+      }
     }
-  }, [onFileSelect]);
+  }, [onFileSelect, onDataExtracted]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
