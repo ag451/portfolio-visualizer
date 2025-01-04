@@ -54,8 +54,10 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
 
   const totalValue = data.reduce((sum, item) => sum + item.value, 0);
 
+  // Transform the data to use ticker symbols for display
   const formattedData = data.map(item => ({
     ...item,
+    name: item.symbol || item.name, // Use symbol if available, fallback to name
     value: convertValue(item.value),
     formattedValue: formatCurrency(item.value)
   }));

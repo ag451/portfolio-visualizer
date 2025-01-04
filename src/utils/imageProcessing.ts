@@ -9,6 +9,15 @@ export interface StockData {
   gainLoss: number;
 }
 
+const extractTickerFromName = (fullName: string): string => {
+  // Split by dot to handle format like "AMZN.NASDAQ"
+  const parts = fullName.split('.');
+  if (parts.length >= 2) {
+    return parts[0]; // Return just the ticker part
+  }
+  return fullName; // Return original if no dot found
+};
+
 export const processStockImage = async (imageFile: File): Promise<StockData[]> => {
   console.log('Processing image:', imageFile.name);
   
@@ -46,9 +55,12 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
       const cleanPrice = price.replace(/,/g, '');
       const cleanValue = value.replace(/,/g, '');
 
+      const fullName = `${companyName.trim()}.${exchange2}`;
+      const tickerSymbol = extractTickerFromName(`${exchange1}.${exchange2}`);
+
       const stockData: StockData = {
-        symbol: `${exchange1}.${exchange2}`,
-        name: `${companyName.trim()}.${exchange2}`,  // Add exchange to name for sector lookup
+        symbol: tickerSymbol,
+        name: fullName,
         price: parseFloat(cleanPrice),
         shares: parseInt(shares, 10),
         value: parseFloat(cleanValue),
