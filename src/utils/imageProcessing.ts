@@ -1,4 +1,5 @@
 import Tesseract from 'tesseract.js';
+import { extractTickerSymbol } from './openaiProcessing';
 
 export interface StockData {
   name: string;
@@ -7,6 +8,7 @@ export interface StockData {
   shares: number;
   value: number;
   gainLoss: number;
+  displayName?: string;
 }
 
 export const processStockImage = async (imageFile: File): Promise<StockData[]> => {
@@ -22,7 +24,7 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
     // Split the text into lines and process each line
     const lines = result.data.text.split('\n').filter(line => line.trim());
     
-    const processedData = lines.map(line => {
+    const processedData = await Promise.all(lines.map(async (line) => {
       // Log each line being processed
       console.log('Processing line:', line);
 
@@ -46,18 +48,22 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
       const cleanPrice = price.replace(/,/g, '');
       const cleanValue = value.replace(/,/g, '');
 
+      // Extract ticker symbol using OpenAI
+      const displayName = await extractTickerSymbol(companyName.trim());
+
       const stockData: StockData = {
         symbol: `${exchange1}.${exchange2}`,
-        name: `${companyName.trim()}.${exchange2}`,  // Add exchange to name for sector lookup
+        name: `${companyName.trim()}.${exchange2}`,  // Keep original name for sector lookup
         price: parseFloat(cleanPrice),
         shares: parseInt(shares, 10),
         value: parseFloat(cleanValue),
-        gainLoss: gainLoss
+        gainLoss: gainLoss,
+        displayName: displayName
       };
 
       console.log('Processed stock data:', stockData);
       return stockData;
-    }).filter((data): data is StockData => data !== null);
+    })).then(results => results.filter((data): data is StockData => data !== null));
 
     console.log('Extracted portfolio data:', processedData);
     return processedData;
