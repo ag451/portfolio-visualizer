@@ -18,37 +18,51 @@ interface FinnhubResponse {
 
 const StockPerformanceTable = ({ stocks }: StockPerformanceTableProps) => {
   const fetchStockPrice = async (symbol: string) => {
-    const { data, error } = await supabase
-      .from('secrets')
-      .select('value')
-      .eq('name', 'FINNHUB_API_KEY')
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching Finnhub API key:', error);
-      throw new Error('Failed to fetch Finnhub API key');
-    }
-
-    if (!data) {
-      console.error('No Finnhub API key found');
-      toast.error('Finnhub API key not found. Please add it in the settings.');
-      throw new Error('Finnhub API key not found');
-    }
-
-    const cleanSymbol = symbol.split('.')[0]; // Remove exchange suffix
+    console.log('Fetching API key for symbol:', symbol);
+    
     try {
-      const response = await fetch(
-        `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${data.value}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Failed to fetch stock price: ${response.statusText}`);
+      const { data, error } = await supabase
+        .from('secrets')
+        .select('value')
+        .eq('name', 'FINNHUB_API_KEY')
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase error fetching API key:', error);
+        toast.error('Failed to fetch API key. Please try again later.');
+        throw error;
       }
+
+      if (!data) {
+        console.error('No API key found in secrets table');
+        toast.error('API key not found. Please add it in settings.');
+        throw new Error('API key not found');
+      }
+
+      console.log('Successfully retrieved API key');
+      const cleanSymbol = symbol.split('.')[0]; // Remove exchange suffix
       
-      return response.json();
+      try {
+        const response = await fetch(
+          `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${data.value}`
+        );
+        
+        if (!response.ok) {
+          console.error('Finnhub API error:', response.statusText);
+          throw new Error(`Failed to fetch stock price: ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('Successfully fetched price for symbol:', symbol);
+        return result;
+      } catch (error) {
+        console.error('Error fetching stock price:', error);
+        toast.error(`Failed to fetch price for ${symbol}`);
+        throw error;
+      }
     } catch (error) {
-      console.error('Error fetching stock price:', error);
-      throw new Error('Failed to fetch stock price');
+      console.error('Error in fetchStockPrice:', error);
+      throw error;
     }
   };
 
