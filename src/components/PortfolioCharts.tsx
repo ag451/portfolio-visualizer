@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { DistributionChart } from './charts/DistributionChart';
 import { ReturnsTooltip } from './tooltips/ReturnsTooltip';
@@ -21,6 +22,7 @@ const COLORS = ['#60A5FA', '#10B981', '#818CF8', '#F472B6', '#F59E0B', '#6366F1'
 const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
   const [currency, setCurrency] = useState<'GBP' | 'USD'>('GBP');
   const [exchangeRate, setExchangeRate] = useState<number>(0.79);
+  const [cashPosition, setCashPosition] = useState<string>('');
 
   useEffect(() => {
     const fetchExchangeRate = async () => {
@@ -42,23 +44,42 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
     return currency === 'GBP' ? value * exchangeRate : value;
   };
 
-  const totalValue = data.reduce((sum, item) => sum + convertValue(item.value), 0);
+  const cashValue = Number(cashPosition) || 0;
+  const convertedCashValue = convertValue(cashValue);
 
-  const formattedData = data.map(item => ({
+  const stocksValue = data.reduce((sum, item) => sum + convertValue(item.value), 0);
+  const totalValue = stocksValue + convertedCashValue;
+
+  const formattedData = [
+    ...data.map(item => ({
+      ...item,
+      name: item.name.split('.')[0],
+      value: convertValue(item.value),
+      formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
+    })).sort((a, b) => b.value - a.value),
+    ...(convertedCashValue > 0 ? [{
+      name: 'Cash',
+      value: convertedCashValue,
+      formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertedCashValue.toLocaleString()}`
+    }] : [])
+  ];
+
+  const formattedSectorData = [
+    ...sectorData.map(item => ({
+      ...item,
+      value: convertValue(item.value),
+      formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
+    })),
+    ...(convertedCashValue > 0 ? [{
+      name: 'Cash',
+      value: convertedCashValue,
+      formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertedCashValue.toLocaleString()}`
+    }] : [])
+  ];
+
+  const formattedReturnsData = [...data].map(item => ({
     ...item,
     name: item.name.split('.')[0],
-    value: convertValue(item.value),
-    formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
-  })).sort((a, b) => b.value - a.value);
-
-  const formattedSectorData = sectorData.map(item => ({
-    ...item,
-    value: convertValue(item.value),
-    formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
-  }));
-
-  const formattedReturnsData = [...formattedData].map(item => ({
-    ...item,
     returns: convertValue(item.returns || 0)
   })).sort((a, b) => {
     const returnsA = a.returns || 0;
@@ -70,13 +91,34 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
     setCurrency(prev => prev === 'USD' ? 'GBP' : 'USD');
   };
 
+  const handleCashChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setCashPosition(value);
+    }
+  };
+
   const currencySymbol = currency === 'GBP' ? '£' : '$';
 
   return (
     <div className="space-y-8">
       <div className="flex justify-between items-center">
-        <div className="text-sm text-muted-foreground">
-          Exchange Rate: 1 USD = {exchangeRate.toFixed(4)} GBP
+        <div className="space-y-2">
+          <div className="text-sm text-muted-foreground">
+            Exchange Rate: 1 USD = {exchangeRate.toFixed(4)} GBP
+          </div>
+          <div className="flex items-center gap-4">
+            <Input
+              type="text"
+              placeholder="Enter cash position"
+              value={cashPosition}
+              onChange={handleCashChange}
+              className="w-48"
+            />
+            <span className="text-sm text-muted-foreground">
+              Cash: {currencySymbol}{convertedCashValue.toLocaleString()}
+            </span>
+          </div>
         </div>
         <Button 
           onClick={toggleCurrency}
