@@ -44,7 +44,7 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
         return null;
       }
 
-      const [_, exchange1, exchange2, companyName, price, shares, value] = match;
+      const [_, symbol, exchange, companyName, price, shares, value] = match;
       
       // Extract gain/loss from the remaining part of the line
       const remainingLine = line.slice(line.indexOf(value) + value.length);
@@ -55,11 +55,10 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
       const cleanPrice = price.replace(/,/g, '');
       const cleanValue = value.replace(/,/g, '');
 
-      const fullName = `${companyName.trim()}.${exchange2}`;
-      const tickerSymbol = extractTickerFromName(`${exchange1}.${exchange2}`);
+      const fullName = `${companyName.trim()}.${exchange}`;
 
       const stockData: StockData = {
-        symbol: tickerSymbol,
+        symbol: symbol, // Use the extracted symbol directly
         name: fullName,
         price: parseFloat(cleanPrice),
         shares: parseInt(shares, 10),
