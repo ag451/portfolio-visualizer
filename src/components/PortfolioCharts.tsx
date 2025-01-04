@@ -30,13 +30,20 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
     name: item.name.split('.')[0],
     value: convertValue(item.value),
     formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
-  }));
+  })).sort((a, b) => b.value - a.value); // Sort by value descending
 
   const formattedSectorData = sectorData.map(item => ({
     ...item,
     value: convertValue(item.value),
     formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
   }));
+
+  // Create a separate sorted array for the returns chart
+  const formattedReturnsData = [...formattedData].sort((a, b) => {
+    const returnsA = a.returns || 0;
+    const returnsB = b.returns || 0;
+    return returnsB - returnsA; // Sort by returns descending
+  });
 
   const toggleCurrency = () => {
     setCurrency(prev => prev === 'USD' ? 'GBP' : 'USD');
@@ -155,7 +162,7 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
         <div className="bg-background border p-6 rounded-lg shadow-lg">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Gains & Losses</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={formattedData}>
+            <BarChart data={formattedReturnsData}>
               <XAxis dataKey="name" stroke="currentColor" />
               <YAxis
                 tickFormatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}k`}
@@ -168,7 +175,7 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
                 stroke="#047857"
                 fillOpacity={0.8}
               >
-                {formattedData.map((entry, index) => (
+                {formattedReturnsData.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`}
                     fill={entry.returns >= 0 ? '#10B981' : '#EF4444'}
