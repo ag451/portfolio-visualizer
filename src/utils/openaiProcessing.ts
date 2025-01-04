@@ -1,10 +1,16 @@
-import { gpt4o } from '@lovable/openai';
+import OpenAI from 'openai';
+
+const openai = new OpenAI({
+  apiKey: process.env.VITE_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true // Note: In production, you should use a backend service
+});
 
 export const extractTickerSymbol = async (companyName: string): Promise<string> => {
   console.log('Extracting ticker symbol for:', companyName);
   
   try {
-    const response = await gpt4o.chat.completions.create({
+    const response = await openai.chat.completions.create({
+      model: "gpt-4",
       messages: [
         {
           role: "system",
