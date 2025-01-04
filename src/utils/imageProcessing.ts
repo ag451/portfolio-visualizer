@@ -22,8 +22,8 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
     const lines = result.data.text.split('\n').filter(line => line.trim());
     
     return lines.map(line => {
-      // Updated regex to capture company name
-      const match = line.match(/([A-Z]+)\.([A-Z]+)\s+(.*?)\s+US?\$?€?(\d+\.?\d*)\s+(\d+)\s+(\d+,?\d*\.?\d*)/);
+      // Updated regex to handle both US$ and € formats, and capture more variations
+      const match = line.match(/([A-Z]+)\.([A-Z]+)\s+(.*?)\s+(?:US\$|€)?([\d,]+\.?\d*)\s+(\d+)\s+([\d,]+\.?\d*)/);
       
       if (!match) {
         console.log('No match found for line:', line);
@@ -33,13 +33,20 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
       const [_, symbol1, symbol2, companyName, price, shares, value] = match;
       const fullSymbol = `${symbol1}.${symbol2}`;
 
-      return {
+      // Clean up and parse numeric values
+      const cleanPrice = price.replace(/,/g, '');
+      const cleanValue = value.replace(/,/g, '');
+
+      const stockData: StockData = {
         symbol: fullSymbol,
         name: companyName.trim(),
-        price: parseFloat(price.replace(',', '')),
+        price: parseFloat(cleanPrice),
         shares: parseInt(shares, 10),
-        value: parseFloat(value.replace(',', ''))
+        value: parseFloat(cleanValue)
       };
+
+      console.log('Processed stock data:', stockData);
+      return stockData;
     }).filter((data): data is StockData => data !== null);
   } catch (error) {
     console.error('Error processing image:', error);
