@@ -6,7 +6,7 @@ export interface StockData {
   price: number;
   shares: number;
   value: number;
-  gainLoss: number; // Total gain/loss
+  gainLoss: number;
 }
 
 export const processStockImage = async (imageFile: File): Promise<StockData[]> => {
@@ -23,8 +23,8 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
     const lines = result.data.text.split('\n').filter(line => line.trim());
     
     return lines.map(line => {
-      // Updated regex to capture gain/loss values
-      const match = line.match(/([A-Z]+)\.([A-Z]+)\s+(.*?)\s+(?:US\$|€)?([\d,]+\.?\d*)\s+(\d+)\s+([\d,]+\.?\d*)\s+([\d,]+\.?\d*)/);
+      // Updated regex to better capture gain/loss values, including negative numbers
+      const match = line.match(/([A-Z]+)\.([A-Z]+)\s+(.*?)\s+(?:US\$|€)?([+-]?[\d,]+\.?\d*)\s+(\d+)\s+([\d,]+\.?\d*)\s+([+-]?[\d,]+\.?\d*)/);
       
       if (!match) {
         console.log('No match found for line:', line);
@@ -34,7 +34,7 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
       const [_, symbol1, symbol2, companyName, price, shares, value, gainLoss] = match;
       const fullSymbol = `${symbol1}.${symbol2}`;
 
-      // Clean up and parse numeric values
+      // Clean up and parse numeric values, handling negative numbers
       const cleanPrice = price.replace(/,/g, '');
       const cleanValue = value.replace(/,/g, '');
       const cleanGainLoss = gainLoss.replace(/,/g, '');
