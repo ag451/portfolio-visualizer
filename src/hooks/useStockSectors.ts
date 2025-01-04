@@ -3,10 +3,27 @@ import { ChartData } from '@/components/types/ChartTypes';
 
 const FINNHUB_API_KEY = 'ctsaonhr01qh9oeso5e0ctsaonhr01qh9oeso5eg';
 
+// Map full names to their stock symbols
+const STOCK_SYMBOL_MAP: { [key: string]: string } = {
+  'Amazon.US': 'AMZN',
+  'ASML Holding NV.US': 'ASML',
+  'Lululemon Athletica inc.US': 'LULU',
+  'MercadoLibre Inc.US': 'MELI'
+};
+
 async function fetchStockSector(symbol: string): Promise<string> {
   try {
-    const response = await fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${symbol}&token=${FINNHUB_API_KEY}`);
+    // Get the actual stock symbol from the map, or extract it from the name
+    const stockName = symbol.split('.')[0]; // Remove the .US suffix
+    const actualSymbol = STOCK_SYMBOL_MAP[symbol] || stockName;
+    
+    console.log('Fetching sector for symbol:', actualSymbol);
+    
+    const response = await fetch(`https://finnhub.io/api/v1/stock/profile2?symbol=${actualSymbol}&token=${FINNHUB_API_KEY}`);
     const data = await response.json();
+    
+    console.log('Finnhub response for', actualSymbol, ':', data);
+    
     return data.finnhubIndustry || 'Unknown';
   } catch (error) {
     console.error('Error fetching sector for', symbol, error);
@@ -21,8 +38,7 @@ export function useStockSectors(stocks: ChartData[]) {
       const sectorMap = new Map<string, number>();
       
       for (const stock of stocks) {
-        const symbol = stock.name.split('.')[0]; // Extract symbol from name (e.g., "AMZN.US" -> "AMZN")
-        const sector = await fetchStockSector(symbol);
+        const sector = await fetchStockSector(stock.name);
         
         const currentValue = sectorMap.get(sector) || 0;
         sectorMap.set(sector, currentValue + stock.value);
