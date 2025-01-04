@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface ChartData {
   name: string;
@@ -14,13 +15,29 @@ interface PortfolioChartsProps {
 }
 
 const COLORS = ['#60A5FA', '#10B981', '#818CF8', '#F472B6', '#F59E0B', '#6366F1', '#EC4899'];
-const USD_TO_GBP = 0.79;
 
 const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
   const [currency, setCurrency] = useState<'GBP' | 'USD'>('GBP');
+  const [exchangeRate, setExchangeRate] = useState<number>(0.79); // Default fallback rate
   
+  useEffect(() => {
+    const fetchExchangeRate = async () => {
+      try {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        const data = await response.json();
+        setExchangeRate(data.rates.GBP);
+        console.log('Fetched exchange rate:', data.rates.GBP);
+      } catch (error) {
+        console.error('Error fetching exchange rate:', error);
+        toast.error('Failed to fetch exchange rate. Using fallback rate.');
+      }
+    };
+
+    fetchExchangeRate();
+  }, []); // Fetch once when component mounts
+
   const convertValue = (value: number) => {
-    return currency === 'GBP' ? value * USD_TO_GBP : value;
+    return currency === 'GBP' ? value * exchangeRate : value;
   };
 
   const totalValue = data.reduce((sum, item) => sum + convertValue(item.value), 0);
@@ -88,7 +105,10 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-end">
+      <div className="flex justify-between items-center">
+        <div className="text-sm text-muted-foreground">
+          Exchange Rate: 1 USD = {exchangeRate.toFixed(4)} GBP
+        </div>
         <Button 
           onClick={toggleCurrency}
           variant="outline"
