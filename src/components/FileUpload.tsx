@@ -15,16 +15,38 @@ interface FileUploadProps {
 const FileUpload = ({ onFileSelect, onDataExtracted }: FileUploadProps) => {
   const [useAI, setUseAI] = useState(false);
 
+  const convertFileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert file to base64'));
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
       const file = acceptedFiles[0];
-      onFileSelect(file);
       
       try {
+        // Convert file to base64 first
+        const base64Data = await convertFileToBase64(file);
+        
+        // Only call onFileSelect with the original file after successful conversion
+        onFileSelect(file);
+        
         toast.loading('Processing your portfolio screenshot...');
+        
         const stockData = useAI 
-          ? await processImageWithAI(file)
+          ? await processImageWithAI(base64Data)
           : await processStockImage(file);
+          
         onDataExtracted(stockData);
         toast.success('Portfolio data extracted successfully!');
       } catch (error) {
