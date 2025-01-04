@@ -55,13 +55,18 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   const totalValue = data.reduce((sum, item) => sum + item.value, 0);
 
   // Transform the data to use ticker symbols for display
-  const formattedData = data.map(item => ({
-    ...item,
-    name: item.symbol, // Always use the symbol for display
-    value: convertValue(item.value),
-    formattedValue: formatCurrency(item.value),
-    displayName: item.symbol // Ensure we use the symbol for display
-  }));
+  const formattedData = data.map(item => {
+    if (!item.symbol) {
+      console.warn('Missing symbol for item:', item);
+    }
+    return {
+      ...item,
+      name: item.symbol || 'Unknown', // Use symbol with fallback
+      value: convertValue(item.value),
+      formattedValue: formatCurrency(item.value),
+      displayName: item.symbol || 'Unknown' // Ensure we use the symbol for display with fallback
+    };
+  });
 
   console.log('Formatted data for charts:', formattedData); // Debug log
 

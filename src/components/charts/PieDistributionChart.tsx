@@ -11,9 +11,10 @@ interface PieDistributionChartProps {
 
 const CustomTooltip = ({ active, payload, formatCurrency, totalValue }: any) => {
   if (active && payload && payload.length) {
+    const item = payload[0].payload;
     return (
       <div className="bg-white p-3 border rounded shadow-lg">
-        <p className="font-semibold">{payload[0].payload.name}</p>
+        <p className="font-semibold">{item.displayName || item.name}</p>
         <p className="text-gray-600">{formatCurrency(payload[0].value)}</p>
         <p className="text-gray-500">
           {((payload[0].value / totalValue) * 100).toFixed(1)}% of portfolio
