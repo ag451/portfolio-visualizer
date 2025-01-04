@@ -22,20 +22,20 @@ const Index = () => {
     setShowCharts(true);
   };
 
-  // Transform stock data for charts
   const chartData = portfolioData.map(stock => ({
     name: stock.symbol,
-    value: stock.value
+    value: stock.value,
+    returns: stock.returns
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+    <div className="min-h-screen bg-background">
       <div className="container py-12">
         <div className="max-w-6xl mx-auto">
-          <h1 className="text-4xl font-bold text-primary mb-4 text-center animate-fadeIn">
+          <h1 className="text-4xl font-bold text-foreground mb-4 text-center animate-fadeIn">
             Portfolio Snapshot
           </h1>
-          <p className="text-gray-600 text-center mb-8 animate-fadeIn">
+          <p className="text-muted-foreground text-center mb-8 animate-fadeIn">
             Upload your portfolio screenshot to visualize your investments
           </p>
 
@@ -47,7 +47,7 @@ const Index = () => {
 
             {isProcessing && (
               <div className="text-center py-8">
-                <div className="animate-pulse text-lg text-gray-600">
+                <div className="animate-pulse text-lg text-muted-foreground">
                   Processing your portfolio...
                 </div>
               </div>
@@ -55,9 +55,9 @@ const Index = () => {
 
             {showCharts && chartData.length > 0 && (
               <div className="animate-fadeIn">
-                <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
-                  <h2 className="text-2xl font-semibold mb-2">Portfolio Summary</h2>
-                  <p className="text-gray-600">
+                <div className="mb-6 p-4 bg-background border rounded-lg shadow-sm">
+                  <h2 className="text-2xl font-semibold mb-2 text-foreground">Portfolio Summary</h2>
+                  <p className="text-muted-foreground">
                     Total Portfolio Value: ${portfolioData
                       .reduce((sum, stock) => sum + stock.value, 0)
                       .toLocaleString()}

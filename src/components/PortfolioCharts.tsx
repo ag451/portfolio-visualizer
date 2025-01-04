@@ -40,10 +40,10 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border rounded shadow-lg">
+        <div className="bg-background p-3 border rounded shadow-lg">
           <p className="font-semibold">{payload[0].payload.name}</p>
-          <p className="text-gray-600">{currencySymbol}{payload[0].value.toLocaleString()}</p>
-          <p className="text-gray-500">
+          <p className="text-foreground">{currencySymbol}{payload[0].value.toLocaleString()}</p>
+          <p className="text-muted-foreground">
             {((payload[0].value / totalValue) * 100).toFixed(1)}% of portfolio
           </p>
         </div>
@@ -55,8 +55,8 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   const ReturnsTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border rounded shadow-lg">
-          <p className="font-semibold">{payload[0].payload.name}</p>
+        <div className="bg-background p-3 border rounded shadow-lg">
+          <p className="font-semibold text-foreground">{payload[0].payload.name}</p>
           <p className={`${payload[0].value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {currencySymbol}{Math.abs(payload[0].value).toLocaleString()}
             {payload[0].value >= 0 ? ' gain' : ' loss'}
@@ -68,7 +68,7 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-8">
       <div className="flex justify-end">
         <Button 
           onClick={toggleCurrency}
@@ -79,9 +79,9 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h3 className="text-lg font-semibold mb-4">Portfolio Distribution</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-background border p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 text-foreground">Portfolio Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
@@ -103,13 +103,14 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h3 className="text-lg font-semibold mb-4">Stock Values</h3>
+        <div className="bg-background border p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 text-foreground">Stock Values</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={formattedData}>
-              <XAxis dataKey="name" />
+              <XAxis dataKey="name" stroke="currentColor" />
               <YAxis
                 tickFormatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}k`}
+                stroke="currentColor"
               />
               <Tooltip
                 formatter={(value: number) => [`${currencySymbol}${value.toLocaleString()}`, 'Value']}
@@ -118,14 +119,17 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h3 className="text-lg font-semibold mb-4">Gains & Losses</h3>
+      <div className="w-full">
+        <div className="bg-background border p-6 rounded-lg shadow-lg">
+          <h3 className="text-lg font-semibold mb-4 text-foreground">Gains & Losses</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={formattedData}>
-              <XAxis dataKey="name" />
+              <XAxis dataKey="name" stroke="currentColor" />
               <YAxis
                 tickFormatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}k`}
+                stroke="currentColor"
               />
               <Tooltip content={<ReturnsTooltip />} />
               <Bar 
