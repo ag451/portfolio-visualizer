@@ -10,9 +10,7 @@ const Index = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currency, setCurrency] = useState<'GBP' | 'USD'>('GBP');
-  const USD_TO_GBP = 0.79;
-
-  const portfolioData = useState<StockData[]>([
+  const [portfolioData, setPortfolioData] = useState<StockData[]>([
     {
       symbol: "LULU.NASDAQ",
       name: "Lululemon Athletica Inc.",
@@ -76,8 +74,9 @@ const Index = () => {
       returns: -1754.77,
       sector: "TECHNOLOGY SERVICES"
     }
-  ])[0];
+  ]);
   
+  const USD_TO_GBP = 0.79;
   const [showCharts, setShowCharts] = useState(true);
 
   const convertValue = (value: number) => {
