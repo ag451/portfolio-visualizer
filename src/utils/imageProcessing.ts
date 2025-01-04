@@ -23,15 +23,15 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
     const lines = result.data.text.split('\n').filter(line => line.trim());
     
     return lines.map(line => {
-      // Updated regex to capture returns column instead of capital gains
-      const match = line.match(/([A-Z]+)\.([A-Z]+)\s+(.*?)\s+(?:US\$|€)?([+-]?[\d,]+\.?\d*)\s+(\d+)\s+([\d,]+\.?\d*)\s+([+-]?[\d,]+\.?\d*)\s+([+-]?[\d,]+\.?\d*)/);
+      // Updated regex to capture the returns column (last column)
+      const match = line.match(/([A-Z]+)\.([A-Z]+)\s+(.*?)\s+(?:US\$|€)?([+-]?[\d,]+\.?\d*)\s+(\d+)\s+([\d,]+\.?\d*)\s+([+-]?[\d,]+\.?\d*)\s+([+-]?[\d,]+\.?\d*)\s+([+-]?[\d,]+\.?\d*)\s+([+-]?[\d,]+\.?\d*)/);
       
       if (!match) {
         console.log('No match found for line:', line);
         return null;
       }
 
-      const [_, symbol1, symbol2, companyName, price, shares, value, returns, capitalGains] = match;
+      const [_, symbol1, symbol2, companyName, price, shares, value, capitalGains, dividends, currency, returns] = match;
       const fullSymbol = `${symbol1}.${symbol2}`;
 
       // Clean up and parse numeric values, handling negative numbers
@@ -45,7 +45,7 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
         price: parseFloat(cleanPrice),
         shares: parseInt(shares, 10),
         value: parseFloat(cleanValue),
-        gainLoss: parseFloat(cleanReturns) // Using returns instead of capital gains
+        gainLoss: parseFloat(cleanReturns) // Using returns column instead of capital gains
       };
 
       console.log('Processed stock data:', stockData);
