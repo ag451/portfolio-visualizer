@@ -23,8 +23,8 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
     console.log('Processed lines:', lines);
     
     const stockData = lines.map(line => {
-      // More flexible regex pattern to match various formats
-      const pattern = /([A-Z]+)\.([A-Z]+)\s*[-\s]*.*?\s+[US$€£]?\s*(\d+[,.]?\d*)\s+(\d+)\s+[US$€£]?\s*(\d+[,.]?\d*)/i;
+      // Updated regex pattern to be more flexible
+      const pattern = /([A-Z]+)\.(NYSE|NASDAQ|EURONEXT)\s+([^$€£\s]+)\s+[US$€£]?([\d,.]+)\s+(\d+)\s+[US$€£]?([\d,]+)/i;
       const match = line.match(pattern);
       
       if (!match) {
@@ -33,16 +33,17 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
       }
 
       console.log('Match found:', match);
-      const [_, symbol1, symbol2, price, shares, value] = match;
-      const fullSymbol = `${symbol1}.${symbol2}`;
+      const [_, symbol1, exchange, name, price, shares, value] = match;
+      const fullSymbol = `${symbol1}.${exchange}`;
 
-      // Clean up numeric values by removing commas and converting to numbers
+      // Clean up numeric values
       const cleanPrice = parseFloat(price.replace(/,/g, ''));
       const cleanShares = parseInt(shares.replace(/,/g, ''), 10);
       const cleanValue = parseFloat(value.replace(/,/g, ''));
 
       console.log('Extracted data:', {
         symbol: fullSymbol,
+        name: name,
         price: cleanPrice,
         shares: cleanShares,
         value: cleanValue
@@ -50,7 +51,7 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
 
       return {
         symbol: fullSymbol,
-        name: fullSymbol,
+        name: name,
         price: cleanPrice,
         shares: cleanShares,
         value: cleanValue
