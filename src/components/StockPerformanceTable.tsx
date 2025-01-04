@@ -1,7 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface StockPerformanceTableProps {
@@ -16,52 +15,29 @@ interface FinnhubResponse {
   c: number; // Current price
 }
 
+const FINNHUB_API_KEY = 'ctsaonhr01qh9oeso5e0ctsaonhr01qh9oeso5eg';
+
 const StockPerformanceTable = ({ stocks }: StockPerformanceTableProps) => {
   const fetchStockPrice = async (symbol: string) => {
-    console.log('Fetching API key for symbol:', symbol);
+    console.log('Fetching price for symbol:', symbol);
     
     try {
-      const { data, error } = await supabase
-        .from('secrets')
-        .select('value')
-        .eq('name', 'FINNHUB_API_KEY')
-        .maybeSingle();
-
-      if (error) {
-        console.error('Supabase error fetching API key:', error);
-        toast.error('Failed to fetch API key. Please try again later.');
-        throw error;
-      }
-
-      if (!data) {
-        console.error('No API key found in secrets table');
-        toast.error('API key not found. Please add it in settings.');
-        throw new Error('API key not found');
-      }
-
-      console.log('Successfully retrieved API key');
       const cleanSymbol = symbol.split('.')[0]; // Remove exchange suffix
+      const response = await fetch(
+        `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${FINNHUB_API_KEY}`
+      );
       
-      try {
-        const response = await fetch(
-          `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${data.value}`
-        );
-        
-        if (!response.ok) {
-          console.error('Finnhub API error:', response.statusText);
-          throw new Error(`Failed to fetch stock price: ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        console.log('Successfully fetched price for symbol:', symbol);
-        return result;
-      } catch (error) {
-        console.error('Error fetching stock price:', error);
-        toast.error(`Failed to fetch price for ${symbol}`);
-        throw error;
+      if (!response.ok) {
+        console.error('Finnhub API error:', response.statusText);
+        throw new Error(`Failed to fetch stock price: ${response.statusText}`);
       }
+      
+      const result = await response.json();
+      console.log('Successfully fetched price for symbol:', symbol);
+      return result;
     } catch (error) {
-      console.error('Error in fetchStockPrice:', error);
+      console.error('Error fetching stock price:', error);
+      toast.error(`Failed to fetch price for ${symbol}`);
       throw error;
     }
   };
