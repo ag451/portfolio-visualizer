@@ -48,9 +48,13 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
   const convertedCashValue = convertValue(cashValue);
 
   const stocksValue = data.reduce((sum, item) => sum + convertValue(item.value), 0);
-  const totalValue = stocksValue + convertedCashValue;
+  
+  // Only include cash in portfolio total value, not in other charts
+  const portfolioTotalValue = stocksValue + convertedCashValue;
+  const otherChartsTotalValue = stocksValue;
 
-  const formattedData = [
+  // Portfolio distribution data includes cash
+  const formattedPortfolioData = [
     ...data.map(item => ({
       ...item,
       name: item.name.split('.')[0],
@@ -64,18 +68,12 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
     }] : [])
   ];
 
-  const formattedSectorData = [
-    ...sectorData.map(item => ({
-      ...item,
-      value: convertValue(item.value),
-      formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
-    })),
-    ...(convertedCashValue > 0 ? [{
-      name: 'Cash',
-      value: convertedCashValue,
-      formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertedCashValue.toLocaleString()}`
-    }] : [])
-  ];
+  // Other charts data excludes cash
+  const formattedSectorData = sectorData.map(item => ({
+    ...item,
+    value: convertValue(item.value),
+    formattedValue: `${currency === 'GBP' ? '£' : '$'}${convertValue(item.value).toLocaleString()}`
+  }));
 
   const formattedReturnsData = [...data].map(item => ({
     ...item,
@@ -131,10 +129,10 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <DistributionChart
-          data={formattedData}
+          data={formattedPortfolioData}
           title="Portfolio Distribution"
           currencySymbol={currencySymbol}
-          totalValue={totalValue}
+          totalValue={portfolioTotalValue}
           colors={COLORS}
         />
 
@@ -142,14 +140,14 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
           data={formattedSectorData}
           title="Sector Distribution"
           currencySymbol={currencySymbol}
-          totalValue={totalValue}
+          totalValue={otherChartsTotalValue}
           colors={COLORS}
         />
 
         <div className="bg-background border p-6 rounded-lg shadow-lg lg:col-span-2">
           <h3 className="text-lg font-semibold mb-4 text-foreground">Stock Values</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={formattedData}>
+            <BarChart data={formattedPortfolioData.filter(item => item.name !== 'Cash')}>
               <XAxis dataKey="name" stroke="currentColor" />
               <YAxis
                 tickFormatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}k`}
