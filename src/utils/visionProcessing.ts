@@ -6,7 +6,7 @@ const replicate = new Replicate({
 });
 
 export const processImageWithAI = async (imageFile: File): Promise<StockData[]> => {
-  console.log('Processing image with AI vision:', imageFile.name);
+  console.log('Starting AI vision processing for:', imageFile.name);
   
   try {
     // Convert file to base64
@@ -14,35 +14,44 @@ export const processImageWithAI = async (imageFile: File): Promise<StockData[]> 
       const reader = new FileReader();
       reader.readAsDataURL(imageFile);
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
+      reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        reject(error);
+      }
     });
 
-    console.log('Image converted to base64, calling Replicate API');
+    console.log('Image successfully converted to base64, length:', base64Image.length);
 
-    // Use BLIP model to extract text from image
-    const output = await replicate.run(
-      "salesforce/blip:2e1dddc8621f72155f24cf2e0adbde548458d3cab9f00c0139eea840d0ac4746",
-      {
-        input: {
-          image: base64Image,
-          task: "image_captioning",
-          caption: "List all stocks with their prices, shares, and values visible in this portfolio screenshot."
+    try {
+      console.log('Calling Replicate API...');
+      // Use BLIP model to extract text from image
+      const output = await replicate.run(
+        "salesforce/blip:2e1dddc8621f72155f24cf2e0adbde548458d3cab9f00c0139eea840d0ac4746",
+        {
+          input: {
+            image: base64Image,
+            task: "image_captioning",
+            caption: "List all stocks with their prices, shares, and values visible in this portfolio screenshot."
+          }
         }
-      }
-    );
+      );
 
-    console.log('Replicate API response:', output);
+      console.log('Replicate API response received:', output);
 
-    // Ensure output is treated as string before parsing
-    const outputText = String(output);
-    
-    // Parse the AI output into stock data
-    const stockData = parseAIOutput(outputText);
-    
-    return stockData;
+      // Ensure output is treated as string before parsing
+      const outputText = String(output);
+      
+      // Parse the AI output into stock data
+      const stockData = parseAIOutput(outputText);
+      
+      return stockData;
+    } catch (apiError) {
+      console.error('Error calling Replicate API:', apiError);
+      throw new Error(`Failed to process image with Replicate API: ${apiError.message}`);
+    }
   } catch (error) {
-    console.error('Error processing image with AI:', error);
-    throw new Error('Failed to process image with AI vision');
+    console.error('Error in AI vision processing:', error);
+    throw error;
   }
 };
 
