@@ -25,6 +25,8 @@ const CustomTooltip = ({ active, payload, formatCurrency, totalValue }: any) => 
 };
 
 export const PieDistributionChart = ({ data, formatCurrency, totalValue, COLORS }: PieDistributionChartProps) => {
+  console.log('Pie chart data:', data); // Debug log
+
   return (
     <div className="bg-white p-6 rounded-lg shadow-lg">
       <h3 className="text-lg font-semibold mb-4">Portfolio Distribution</h3>
