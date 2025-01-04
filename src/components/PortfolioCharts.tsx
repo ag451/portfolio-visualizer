@@ -5,6 +5,7 @@ import { PieDistributionChart } from './charts/PieDistributionChart';
 import { StockValuesChart } from './charts/StockValuesChart';
 import { GainLossChart } from './charts/GainLossChart';
 import { CurrencyDistributionChart } from './charts/CurrencyDistributionChart';
+import { SectorDistributionChart } from './charts/SectorDistributionChart';
 import { useStockSectors } from '@/hooks/useStockSectors';
 import type { ChartData } from './types/ChartTypes';
 
@@ -55,7 +56,6 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
 
   const formattedData = data.map(item => ({
     ...item,
-    name: item.displayName || item.name, // Use displayName if available
     value: convertValue(item.value),
     formattedValue: formatCurrency(item.value)
   }));
