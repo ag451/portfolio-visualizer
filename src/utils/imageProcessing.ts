@@ -23,8 +23,8 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
     console.log('Processed lines:', lines);
     
     const stockData = lines.map(line => {
-      // Updated regex pattern to be more flexible
-      const pattern = /([A-Z]+)\.(NYSE|NASDAQ|EURONEXT)\s+([^$€£\s]+)\s+[US$€£]?([\d,.]+)\s+(\d+)\s+[US$€£]?([\d,]+)/i;
+      // Updated regex pattern to better match the actual format
+      const pattern = /([A-Z]+)\.(NYSE|NASDAQ|EURONEXT)\s+(.*?)\s+[US$€£]?([\d,.]+)\s+(\d+)\s+[US$€£]?([\d,.]+)/i;
       const match = line.match(pattern);
       
       if (!match) {
@@ -43,7 +43,7 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
 
       console.log('Extracted data:', {
         symbol: fullSymbol,
-        name: name,
+        name: name.trim(),
         price: cleanPrice,
         shares: cleanShares,
         value: cleanValue
@@ -51,7 +51,7 @@ export const processStockImage = async (imageFile: File): Promise<StockData[]> =
 
       return {
         symbol: fullSymbol,
-        name: name,
+        name: name.trim(),
         price: cleanPrice,
         shares: cleanShares,
         value: cleanValue
