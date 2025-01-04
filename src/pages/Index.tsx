@@ -22,10 +22,11 @@ const Index = () => {
     setShowCharts(true);
   };
 
-  // Transform stock data for charts using company names
+  // Transform stock data for charts using company names and including gain/loss data
   const chartData = portfolioData.map(stock => ({
     name: stock.name,
-    value: stock.value
+    value: stock.value,
+    gainLoss: stock.gainLoss
   }));
 
   return (

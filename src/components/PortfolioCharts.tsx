@@ -6,6 +6,7 @@ import { toast } from "sonner";
 interface ChartData {
   name: string;
   value: number;
+  gainLoss?: number;
 }
 
 interface PortfolioChartsProps {
@@ -21,11 +22,10 @@ const PortfolioCharts = ({ data }: PortfolioChartsProps) => {
   const [exchangeRate, setExchangeRate] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data for gains/losses (since we don't have historical data)
-  // In a real app, this would come from your backend
+  // Use actual gain/loss data from the image
   const gainLossData = data.map(stock => ({
     name: stock.name,
-    value: (Math.random() * 2 - 1) * stock.value * 0.1, // Random gain/loss within ±10%
+    value: stock.gainLoss || 0,
   }));
 
   // Mock currency distribution (for demonstration)
