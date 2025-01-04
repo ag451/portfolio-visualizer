@@ -4,11 +4,15 @@ import PortfolioCharts from '@/components/PortfolioCharts';
 import StockPerformanceTable from '@/components/StockPerformanceTable';
 import { toast } from 'sonner';
 import type { StockData } from '@/utils/imageProcessing';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const [file, setFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [portfolioData, setPortfolioData] = useState<StockData[]>([
+  const [currency, setCurrency] = useState<'GBP' | 'USD'>('GBP');
+  const USD_TO_GBP = 0.79;
+
+  const portfolioData = useState<StockData[]>([
     {
       symbol: "LULU.NASDAQ",
       name: "Lululemon Athletica Inc.",
@@ -72,12 +76,17 @@ const Index = () => {
       returns: -1754.77,
       sector: "TECHNOLOGY SERVICES"
     }
-  ]);
+  ])[0];
+  
   const [showCharts, setShowCharts] = useState(true);
 
+  const convertValue = (value: number) => {
+    return currency === 'GBP' ? value * USD_TO_GBP : value;
+  };
+
   // Calculate total portfolio value and returns
-  const totalPortfolioValue = portfolioData.reduce((sum, stock) => sum + stock.value, 0);
-  const totalReturns = portfolioData.reduce((sum, stock) => sum + (stock.returns || 0), 0);
+  const totalPortfolioValue = portfolioData.reduce((sum, stock) => sum + convertValue(stock.value), 0);
+  const totalReturns = portfolioData.reduce((sum, stock) => sum + convertValue(stock.returns || 0), 0);
   const returnsPercentage = (totalReturns / (totalPortfolioValue - totalReturns)) * 100;
 
   const handleFileSelect = (selectedFile: File) => {
@@ -121,6 +130,12 @@ const Index = () => {
     returns: stock.returns || 0
   }));
 
+  const toggleCurrency = () => {
+    setCurrency(prev => prev === 'USD' ? 'GBP' : 'USD');
+  };
+
+  const currencySymbol = currency === 'GBP' ? '£' : '$';
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container py-12">
@@ -149,19 +164,28 @@ const Index = () => {
             {showCharts && chartData.length > 0 && (
               <div className="animate-fadeIn space-y-8">
                 <div className="grid gap-4 p-6 bg-background border rounded-lg shadow-lg">
-                  <h2 className="text-2xl font-semibold text-foreground">Portfolio Summary</h2>
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-semibold text-foreground">Portfolio Summary</h2>
+                    <Button 
+                      onClick={toggleCurrency}
+                      variant="outline"
+                      className="mb-4"
+                    >
+                      Switch to {currency === 'GBP' ? 'USD' : 'GBP'}
+                    </Button>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 bg-primary/5 rounded-lg">
                       <p className="text-sm text-muted-foreground mb-1">Total Portfolio Value</p>
                       <p className="text-3xl font-bold text-foreground">
-                        ${totalPortfolioValue.toLocaleString()}
+                        {currencySymbol}{totalPortfolioValue.toLocaleString()}
                       </p>
                     </div>
                     <div className={`p-4 ${totalReturns >= 0 ? 'bg-accent/10' : 'bg-destructive/10'} rounded-lg`}>
                       <p className="text-sm text-muted-foreground mb-1">Total Gain/Loss</p>
                       <div>
                         <p className={`text-3xl font-bold ${totalReturns >= 0 ? 'text-accent' : 'text-destructive'}`}>
-                          {totalReturns >= 0 ? '+' : '-'}${Math.abs(totalReturns).toLocaleString()}
+                          {totalReturns >= 0 ? '+' : '-'}{currencySymbol}{Math.abs(totalReturns).toLocaleString()}
                         </p>
                         <p className={`text-sm ${totalReturns >= 0 ? 'text-accent' : 'text-destructive'}`}>
                           ({returnsPercentage >= 0 ? '+' : ''}{returnsPercentage.toFixed(2)}%)
