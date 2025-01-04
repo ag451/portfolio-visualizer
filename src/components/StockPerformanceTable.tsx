@@ -17,19 +17,19 @@ interface FinnhubResponse {
 
 const StockPerformanceTable = ({ stocks }: StockPerformanceTableProps) => {
   const fetchStockPrice = async (symbol: string) => {
-    const { data: { secret } } = await supabase
+    const { data, error } = await supabase
       .from('secrets')
       .select('value')
       .eq('name', 'FINNHUB_API_KEY')
       .single();
 
-    if (!secret) {
+    if (error || !data) {
       throw new Error('Finnhub API key not found');
     }
 
     const cleanSymbol = symbol.split('.')[0]; // Remove exchange suffix
     const response = await fetch(
-      `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${secret}`
+      `https://finnhub.io/api/v1/quote?symbol=${cleanSymbol}&token=${data.value}`
     );
     
     if (!response.ok) {
