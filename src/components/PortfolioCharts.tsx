@@ -39,7 +39,10 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
   }));
 
   // Create a separate sorted array for the returns chart
-  const formattedReturnsData = [...formattedData].sort((a, b) => {
+  const formattedReturnsData = [...formattedData].map(item => ({
+    ...item,
+    returns: convertValue(item.returns || 0)
+  })).sort((a, b) => {
     const returnsA = a.returns || 0;
     const returnsB = b.returns || 0;
     return returnsB - returnsA; // Sort by returns descending
@@ -74,6 +77,9 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
           <p className={`${payload[0].value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {currencySymbol}{Math.abs(payload[0].value).toLocaleString()}
             {payload[0].value >= 0 ? ' gain' : ' loss'}
+          </p>
+          <p className="text-muted-foreground">
+            Original value: {currencySymbol}{convertValue(payload[0].payload.value).toLocaleString()}
           </p>
         </div>
       );
@@ -140,22 +146,21 @@ const PortfolioCharts = ({ data, sectorData }: PortfolioChartsProps) => {
           </ResponsiveContainer>
         </div>
 
-        <div className="bg-background border p-6 rounded-lg shadow-lg lg:col-span-2">
-          <h3 className="text-lg font-semibold mb-4 text-foreground">Stock Values</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={formattedData}>
-              <XAxis dataKey="name" stroke="currentColor" />
-              <YAxis
-                tickFormatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}k`}
-                stroke="currentColor"
-              />
-              <Tooltip
-                formatter={(value: number) => [`${currencySymbol}${value.toLocaleString()}`, 'Value']}
-              />
-              <Bar dataKey="value" fill="#60A5FA" />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
+      <div className="bg-background border p-6 rounded-lg shadow-lg lg:col-span-2">
+        <h3 className="text-lg font-semibold mb-4 text-foreground">Stock Values</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={formattedData}>
+            <XAxis dataKey="name" stroke="currentColor" />
+            <YAxis
+              tickFormatter={(value) => `${currencySymbol}${(value / 1000).toFixed(0)}k`}
+              stroke="currentColor"
+            />
+            <Tooltip
+              formatter={(value: number) => [`${currencySymbol}${value.toLocaleString()}`, 'Value']}
+            />
+            <Bar dataKey="value" fill="#60A5FA" />
+          </BarChart>
+        </ResponsiveContainer>
       </div>
 
       <div className="w-full">
